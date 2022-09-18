@@ -12,6 +12,8 @@ namespace MainSpace
 
         [HideInInspector]
         public Transform myTransform;
+        [HideInInspector]
+        public AnimatorHandler animatorHandler;
 
         public new Rigidbody rigidbody;
         public GameObject normalCamera;
@@ -23,9 +25,14 @@ namespace MainSpace
         float rotationSpeed = 10;
 
         private void Start() {
+            myTransform = this.transform;// add this, because myTransform not initialize
+
             rigidbody = GetComponent<Rigidbody>();
             inputHandler = GetComponent<InputHandler>();
+            animatorHandler = GetComponentInChildren<AnimatorHandler>();
             cameraObject = Camera.main.transform;
+
+            animatorHandler.Initialize();
         }
 
         private void Update() {
@@ -36,13 +43,20 @@ namespace MainSpace
             moveDirection = cameraObject.forward * inputHandler.vertical;
             moveDirection += cameraObject.right * inputHandler.horizontal;
             moveDirection.Normalize();
-            moveDirection.y = 0;
+
+            moveDirection.y = 0; //add this, because player move up, when move back .... i see, problem was in camera rotation, because player's move direction depends camera transform
 
             float speed = movementSpeed;
             moveDirection *= speed;
 
             Vector3 projectedVelosity = Vector3.ProjectOnPlane(moveDirection, normalVector);
             rigidbody.velocity = projectedVelosity;
+
+            animatorHandler.UpdateAnimatorValue(inputHandler.moveAmount, 0);
+
+            if(animatorHandler.canRotate){
+                HandleRotation(delta);
+            }
         }
 
 
